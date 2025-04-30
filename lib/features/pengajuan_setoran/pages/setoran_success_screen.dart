@@ -20,7 +20,7 @@ class SetoranSuccessScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      Images.pengajuansetoranSuccess, // Sesuaikan dengan path asset kamu
+                      Images.pengajuansetoranSuccess,
                       height: 150,
                     ),
                     const SizedBox(height: 24),
@@ -44,7 +44,7 @@ class SetoranSuccessScreen extends StatelessWidget {
             ),
           ),
           Image.asset(
-            Images.bottomSuccess, // Ornamen bawah (buat asset ini juga)
+            Images.bottomSuccess,
             fit: BoxFit.fill,
           ),
         ],

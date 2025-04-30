@@ -16,7 +16,7 @@ class MainApp extends StatelessWidget {
         return GetMaterialApp(
           title: 'Wanigo Nasabah',
           debugShowCheckedModeBanner: true,
-          initialRoute: NavigationRoutes.setoranSuccess,
+          initialRoute: NavigationRoutes.daftarItemSampah,
           getPages: NavigationRoutes.routes,
           defaultTransition: Transition.noTransition,
           // Widget utama

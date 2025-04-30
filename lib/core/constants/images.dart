@@ -3,5 +3,5 @@ class Images {
   static const String pengajuansetoranEmpty = 'assets/empty-items.svg';
   static const String bottomSuccess = 'assets/bottom-bgsuccess.png';
   static const String pengajuansetoranSuccess = 'assets/success.png';
-
+  static const String emptySetoran = 'assets/empty-setoran.svg';
 }
