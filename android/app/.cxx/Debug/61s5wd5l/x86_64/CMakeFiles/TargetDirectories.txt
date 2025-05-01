@@ -1,0 +1,2 @@
+E:/wanigo_nasabah/android/app/.cxx/Debug/61s5wd5l/x86_64/CMakeFiles/edit_cache.dir
+E:/wanigo_nasabah/android/app/.cxx/Debug/61s5wd5l/x86_64/CMakeFiles/rebuild_cache.dir

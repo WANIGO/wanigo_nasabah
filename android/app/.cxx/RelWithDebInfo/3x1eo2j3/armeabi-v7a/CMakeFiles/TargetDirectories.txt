@@ -1,0 +1,2 @@
+E:/wanigo_nasabah/android/app/.cxx/RelWithDebInfo/3x1eo2j3/armeabi-v7a/CMakeFiles/edit_cache.dir
+E:/wanigo_nasabah/android/app/.cxx/RelWithDebInfo/3x1eo2j3/armeabi-v7a/CMakeFiles/rebuild_cache.dir
