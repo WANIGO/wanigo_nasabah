@@ -7,6 +7,10 @@ import '../widgets/profile_card.dart';
 import '../widgets/tabungan_saldo.dart';
 import '../widgets/calendar_card.dart';
 import '../widgets/setoran_sampah_card.dart';
+import 'setoran_page.dart';
+
+
+
 
 class NasabahHomeScreen extends StatelessWidget {
   const NasabahHomeScreen({super.key});
@@ -86,7 +90,7 @@ class NasabahHomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: _buildBottomNavigationBar(context),
     );
   }
 
@@ -141,17 +145,25 @@ class NasabahHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomNavigationBar() {
+  Widget _buildBottomNavigationBar(BuildContext context) {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.blue,
       unselectedItemColor: Colors.black,
-      currentIndex: 2,
+      currentIndex: 2, // Tetap di-index 2 karena kamu highlight Setoran
+      onTap: (index) {
+        if (index == 2) {
+          // Kalau klik Setoran
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SetoranPage()),
+          );
+        }
+        // Kamu bisa tambahkan navigasi untuk index lainnya juga nanti
+      },
       items: [
-        const BottomNavigationBarItem(
-            icon: Icon(Icons.home), label: 'Beranda'),
-        const BottomNavigationBarItem(
-            icon: Icon(Icons.history), label: 'Riwayat'),
+        const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
+        const BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Riwayat'),
         BottomNavigationBarItem(
           icon: Container(
             padding: const EdgeInsets.all(6),
@@ -163,11 +175,10 @@ class NasabahHomeScreen extends StatelessWidget {
           ),
           label: 'Setoran',
         ),
-        const BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline), label: 'Pesan'),
-        const BottomNavigationBarItem(
-            icon: Icon(Icons.person), label: 'Profil'),
+        const BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Pesan'),
+        const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
       ],
     );
   }
 }
+
