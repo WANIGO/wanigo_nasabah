@@ -23,6 +23,10 @@ class LoginController extends GetxController {
   // Variabel untuk memeriksa apakah controller di-dispose atau tidak
   bool _isDisposed = false;
   
+  // Variabel untuk membatasi request berulang
+  DateTime? _lastEmailCheckTime;
+  static const Duration _emailCheckThrottleTime = Duration(milliseconds: 500);
+  
   @override
   void onInit() {
     super.onInit();
@@ -65,6 +69,16 @@ class LoginController extends GetxController {
       return;
     }
     
+    // Hindari request beruntun terlalu cepat
+    if (_lastEmailCheckTime != null) {
+      final difference = DateTime.now().difference(_lastEmailCheckTime!);
+      if (difference < _emailCheckThrottleTime) {
+        print("DEBUG - Throttling email check request. Time since last request: ${difference.inMilliseconds}ms");
+        return;
+      }
+    }
+    _lastEmailCheckTime = DateTime.now();
+    
     // Reset error message jika ada
     errorMessage.value = '';
     
@@ -106,80 +120,83 @@ class LoginController extends GetxController {
       // Jika controller sudah di-dispose, hentikan proses
       if (_isDisposed) return;
       
-      // Periksa format respons - pastikan kita memeriksa struktur API yang benar
-      if (response.containsKey('status')) {
-        if (response['status'] == 'success') {
-          // Ambil data dari respons API
-          final data = response.containsKey('data') ? response['data'] : null;
+      // Format response yang konsisten berdasarkan struktur API yang dijelaskan di dokumentasi
+      if (response.containsKey('status') && response['status'] == 'success') {
+        // Ambil data dari respons API
+        final data = response.containsKey('data') ? response['data'] : null;
+        
+        // Debug print untuk melihat data
+        print("DEBUG - Response data: $data");
+        
+        if (data != null) {
+          // Periksa email_exists sesuai dengan spesifikasi API
+          final bool emailExists = data.containsKey('email_exists') ? 
+              data['email_exists'] : false;
           
-          // Debug print untuk melihat data
-          print("DEBUG - Response data: $data");
+          final String? role = emailExists && data.containsKey('role') ? 
+              data['role'] : null;
           
-          if (data != null) {
-            // Periksa email_exists sesuai dengan spesifikasi API
-            final bool emailExists = data.containsKey('email_exists') ? 
-                data['email_exists'] : false;
-            
-            final String? role = emailExists && data.containsKey('role') ? 
-                data['role'] : null;
-            
-            print("DEBUG - Email exists: $emailExists, Role: $role");
-            
-            if (emailExists) {
-              // Periksa apakah role adalah nasabah
-              if (role == 'nasabah') {
-                // Email terdaftar dan role nasabah, navigasi ke login confirm
-                print("DEBUG - Email terdaftar dengan role nasabah, navigasi ke login confirm");
-                
-                // Hindari navigasi jika controller sudah di-dispose
-                if (!_isDisposed) {
-                  // Gunakan cached email untuk navigasi
-                  Get.toNamed(Routes.loginConfirm, arguments: _cachedEmail);
-                }
-              } else {
-                // Email terdaftar tapi bukan role nasabah
-                errorMessage.value = "Email ini terdaftar dengan role '$role', bukan nasabah.";
-                
-                // Pastikan tidak menampilkan snackbar jika controller di-dispose
-                if (!_isDisposed) {
-                  Get.snackbar(
-                    'Perhatian',
-                    errorMessage.value,
-                    backgroundColor: Colors.orange[100],
-                    colorText: Colors.orange[900],
-                    snackPosition: SnackPosition.BOTTOM,
-                    margin: const EdgeInsets.all(16),
-                    duration: const Duration(seconds: 5),
-                  );
-                }
+          print("DEBUG - Email exists: $emailExists, Role: $role");
+          
+          if (emailExists) {
+            // Periksa apakah role adalah nasabah
+            if (role == 'nasabah') {
+              // Email terdaftar dan role nasabah, navigasi ke login confirm
+              print("DEBUG - Email terdaftar dengan role nasabah, navigasi ke login confirm");
+              
+              // Hindari navigasi jika controller sudah di-dispose
+              if (!_isDisposed) {
+                // Gunakan cached email untuk navigasi
+                Get.toNamed(Routes.loginConfirm, arguments: _cachedEmail);
               }
             } else {
-              // Email belum terdaftar, tampilkan dialog
-              print("DEBUG - Email belum terdaftar, tampilkan dialog");
-              // Cek apakah controller masih aktif
+              // Email terdaftar tapi bukan role nasabah
+              errorMessage.value = "Email ini terdaftar dengan role '$role', bukan nasabah.";
+              
+              // Pastikan tidak menampilkan snackbar jika controller di-dispose
               if (!_isDisposed) {
-                // Gunakan cached email untuk dialog
-                _showEmailNotRegisteredDialog(_cachedEmail!);
+                Get.snackbar(
+                  'Perhatian',
+                  errorMessage.value,
+                  backgroundColor: Colors.orange[100],
+                  colorText: Colors.orange[900],
+                  snackPosition: SnackPosition.BOTTOM,
+                  margin: const EdgeInsets.all(16),
+                  duration: const Duration(seconds: 5),
+                );
               }
             }
           } else {
-            // Data tidak ditemukan
-            handleApiError("Data tidak valid dari server");
+            // Email belum terdaftar, tampilkan dialog
+            print("DEBUG - Email belum terdaftar, tampilkan dialog");
+            // Cek apakah controller masih aktif
+            if (!_isDisposed) {
+              // Gunakan cached email untuk dialog
+              _showEmailNotRegisteredDialog(_cachedEmail!);
+            }
           }
         } else {
-          // Status bukan success
-          String message = response.containsKey('message') ? response['message'] : 'Gagal memeriksa email';
-          handleApiError(message);
+          // Data tidak ditemukan
+          handleApiError("Data tidak valid dari server");
         }
       } else {
-        // Response tidak valid
-        handleApiError("Respons dari server tidak valid");
+        // Status bukan success
+        String message = response.containsKey('message') ? response['message'] : 'Gagal memeriksa email';
+        handleApiError(message);
       }
     } catch (e) {
       if (_isDisposed) return; // Hindari update state jika sudah di-dispose
       
       errorMessage.value = e.toString();
       print("DEBUG - Exception dalam checkEmailAndNavigate: $e");
+      
+      // Cek jika error terkait koneksi, gunakan fallback data
+      if (e.toString().contains('koneksi') || 
+          e.toString().contains('network') || 
+          e.toString().contains('Failed host lookup')) {
+        _showConnectionErrorDialog(emailToCheck);
+        return;
+      }
       
       Get.snackbar(
         'Error',
@@ -203,6 +220,18 @@ class LoginController extends GetxController {
     
     errorMessage.value = message;
     print("DEBUG - API Error: $message");
+    
+    // Jika error terkait koneksi, tampilkan ConnectionErrorDialog
+    if (errorMessage.value.contains('koneksi') || 
+        errorMessage.value.contains('network') ||
+        errorMessage.value.contains('Failed host lookup')) {
+      
+      // Tampilkan dialog koneksi
+      if (_cachedEmail != null) {
+        _showConnectionErrorDialog(_cachedEmail!);
+      }
+      return;
+    }
     
     Get.snackbar(
       'Error',
@@ -308,6 +337,121 @@ class LoginController extends GetxController {
                 ),
                 child: const Text(
                   'Kembali',
+                  style: TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: false, // User harus pilih salah satu tombol
+    );
+  }
+  
+  /// Menampilkan dialog error koneksi
+  void _showConnectionErrorDialog(String email) {
+    if (_isDisposed) return;
+    
+    print("DEBUG - Showing connection error dialog for: $email");
+    
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Network error icon
+              Icon(
+                Icons.signal_wifi_off,
+                size: 80,
+                color: Colors.orange,
+              ),
+              const SizedBox(height: 16),
+              
+              // Title text
+              Text(
+                "Koneksi Bermasalah",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              
+              // Description text
+              Text(
+                "Tidak dapat terhubung ke server. Silahkan periksa koneksi internet Anda atau lanjutkan dengan email ini.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Lanjutkan dengan email ini button
+              ElevatedButton(
+                onPressed: () {
+                  Get.back(); // Close dialog
+                  print("DEBUG - Proceeding with email despite connection issues: $email");
+                  
+                  // Cek apakah controller masih aktif
+                  if (!_isDisposed) {
+                    // Navigasi ke login confirm atau register berdasarkan email
+                    if (email == 'test@example.com') {
+                      // Assume this is a test email
+                      Get.toNamed(Routes.loginConfirm, arguments: email);
+                    } else {
+                      // Untuk email lain, anggap belum terdaftar
+                      _showEmailNotRegisteredDialog(email);
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1976D2),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Lanjutkan Dengan Email Ini',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              
+              // Coba lagi button
+              OutlinedButton(
+                onPressed: () {
+                  Get.back(); // Close dialog
+                  
+                  // Cek apakah controller masih aktif
+                  if (!_isDisposed) {
+                    checkEmailAndNavigate(); // Try again
+                  }
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.black,
+                  side: BorderSide(color: Colors.grey.shade300),
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Coba Lagi',
                   style: TextStyle(
                     fontSize: 16,
                   ),

@@ -30,11 +30,7 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       automaticallyImplyLeading: false,
       leadingWidth: kToolbarHeight,
-      title: title ?? Image.asset(
-        'assets/images/appbar-logo.png',
-        height: 25,
-        fit: BoxFit.contain,
-      ),
+      title: title ?? _buildAppBarLogo(),
       leading: showBackButton ? IconButton(
         icon: const Icon(
           Icons.arrow_back_ios,
@@ -44,6 +40,26 @@ class GlobalAppBar extends StatelessWidget implements PreferredSizeWidget {
         onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
       ) : null,
       actions: actions,
+    );
+  }
+
+  // Logo builder dengan fallback ke text jika gambar tidak ditemukan
+  Widget _buildAppBarLogo() {
+    return Image.asset(
+      'assets/images/appbar_logo.png',
+      height: 25,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        // Fallback jika gambar tidak ditemukan
+        return Text(
+          'WANIGO',
+          style: TextStyle(
+            color: Colors.blue[700],
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        );
+      },
     );
   }
 

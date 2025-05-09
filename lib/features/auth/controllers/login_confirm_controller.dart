@@ -25,57 +25,51 @@ class LoginConfirmController extends GetxController {
   // Flag untuk menandai controller di-dispose
   bool _isDisposed = false;
   
+  // Throttle untuk login request
+  DateTime? _lastLoginTime;
+  static const Duration _loginThrottleTime = Duration(milliseconds: 1000);
+  
   @override
   void onInit() {
     super.onInit();
-    
-    // PERBAIKAN 1: Tambahkan password default untuk test/dev
-    if (kDebugMode) {
-      passwordController.text = 'password123';
-    }
     
     // Ambil email dari arguments
     if (Get.arguments != null) {
       if (Get.arguments is String) {
         email = Get.arguments as String;
-        print("DEBUG - Email received in login confirm: $email");
+        if (kDebugMode) {
+          print("DEBUG - Email received in login confirm: $email");
+        }
       } else {
         // Coba ekstrak dari Map jika arguments adalah Map
         try {
           Map<String, dynamic> args = Get.arguments as Map<String, dynamic>;
           if (args.containsKey('email')) {
             email = args['email'];
-            print("DEBUG - Email extracted from map in login confirm: $email");
+            if (kDebugMode) {
+              print("DEBUG - Email extracted from map in login confirm: $email");
+            }
           } else {
             throw Exception("No email key in arguments map");
           }
         } catch (e) {
-          print("DEBUG - Failed to extract email from arguments: $e");
+          if (kDebugMode) {
+            print("DEBUG - Failed to extract email from arguments: $e");
+          }
           // Fallback ke empty string
           email = '';
           
-          // PERBAIKAN 2: Tambahkan email default untuk test/dev
-          if (kDebugMode) {
-            email = 'test@example.com';
-            print("DEBUG - Using default test email: $email");
-          } else {
-            // Kembali ke halaman login jika tidak ada email
-            Get.offAllNamed(Routes.login);
-          }
+          // Kembali ke halaman login jika tidak ada email
+          Get.offAllNamed(Routes.login);
         }
       }
     } else {
       // Jika tidak ada email, kembali ke halaman login
-      print("DEBUG - No email received, returning to login");
-      email = '';
-      
-      // PERBAIKAN 3: Tambahkan email default untuk test/dev
       if (kDebugMode) {
-        email = 'test@example.com';
-        print("DEBUG - Using default test email: $email");
-      } else {
-        Get.offAllNamed(Routes.login);
+        print("DEBUG - No email received, returning to login");
       }
+      email = '';
+      Get.offAllNamed(Routes.login);
     }
   }
   
@@ -104,9 +98,23 @@ class LoginConfirmController extends GetxController {
   Future<void> login() async {
     // Cek apakah controller sudah di-dispose
     if (_isDisposed) {
-      print("DEBUG - Controller already disposed, cancelling login");
+      if (kDebugMode) {
+        print("DEBUG - Controller already disposed, cancelling login");
+      }
       return;
     }
+    
+    // Hindari request beruntun terlalu cepat
+    if (_lastLoginTime != null) {
+      final difference = DateTime.now().difference(_lastLoginTime!);
+      if (difference < _loginThrottleTime) {
+        if (kDebugMode) {
+          print("DEBUG - Throttling login request. Time since last request: ${difference.inMilliseconds}ms");
+        }
+        return;
+      }
+    }
+    _lastLoginTime = DateTime.now();
     
     // Validasi password
     final passwordValidation = validatePassword(passwordController.text);
@@ -132,15 +140,18 @@ class LoginConfirmController extends GetxController {
     errorMessage.value = '';
     
     try {
-      print("DEBUG - Attempting login with email: $email and password length: ${passwordController.text.length}");
+      if (kDebugMode) {
+        print("DEBUG - Attempting login with email: $email and password length: ${passwordController.text.length}");
+      }
       
-      // PERBAIKAN 4: Gunakan try-catch untuk menangani error lebih spesifik
       try {
         // Panggil API login direct dengan AuthRepository
         final response = await _authRepository.login(
           email,
           passwordController.text,
-        );
+        ).timeout(const Duration(seconds: 30), onTimeout: () {
+          throw Exception('Timeout: Server tidak merespon dalam waktu yang ditentukan');
+        });
         
         // Cek apakah controller masih aktif
         if (_isDisposed) return;
@@ -150,22 +161,30 @@ class LoginConfirmController extends GetxController {
         _authController.profileStatus.value = response.profileStatus;
         _authController.isLoggedIn.value = true;
         
-        print("DEBUG - Login successful, checking profile status");
-        print("DEBUG - Profile status: isCompleted=${response.profileStatus.isCompleted}, nextStep=${response.profileStatus.nextStep}");
+        // Simpan token untuk request selanjutnya
+        if (kDebugMode) {
+          print("DEBUG - Login successful, token received and profile status updated");
+          print("DEBUG - Profile status: isCompleted=${response.profileStatus.isCompleted}, nextStep=${response.profileStatus.nextStep}");
+        }
         
-        // PERBAIKAN 5: Tambahkan delay lebih lama untuk memastikan status login tersimpan
+        // Tambahkan delay untuk memastikan status login tersimpan
         await Future.delayed(const Duration(milliseconds: 500));
         
-        // PERBAIKAN 6: Debug informasi - cek jika jenis_sampah_dikelola sudah diisi
+        // Debug informasi - cek jika jenis_sampah_dikelola sudah diisi
         if (response.user.nasabah != null) {
-          print("DEBUG - jenis_sampah_dikelola: ${response.user.nasabah!.jenisSampahDikelola}");
-          print("DEBUG - profile_completed_at: ${response.user.nasabah!.profileCompletedAt}");
+          if (kDebugMode) {
+            print("DEBUG - Nasabah profile found");
+            print("DEBUG - jenis_sampah_dikelola: ${response.user.nasabah!.jenisSampahDikelola}");
+            print("DEBUG - profile_completed_at: ${response.user.nasabah!.profileCompletedAt}");
+          }
           
-          // PERBAIKAN 7: Cek field jenis_sampah_dikelola terlebih dahulu sebagai indikator profil lengkap
+          // Cek field jenis_sampah_dikelola terlebih dahulu sebagai indikator profil lengkap
           if (response.user.nasabah!.jenisSampahDikelola != null && 
               response.user.nasabah!.jenisSampahDikelola!.isNotEmpty) {
             
-            print("DEBUG - Profile complete based on jenis_sampah_dikelola, navigating to home");
+            if (kDebugMode) {
+              print("DEBUG - Profile complete based on jenis_sampah_dikelola, navigating to home");
+            }
             Get.offAllNamed(Routes.home);
             return;
           }
@@ -174,30 +193,46 @@ class LoginConfirmController extends GetxController {
         // Navigasi berdasarkan status profil
         if (response.profileStatus.isCompleted) {
           // Profil sudah lengkap, arahkan ke home
-          print("DEBUG - Profile complete, navigating to home");
+          if (kDebugMode) {
+            print("DEBUG - Profile complete, navigating to home");
+          }
           Get.offAllNamed(Routes.home);
         } else {
           // Profil belum lengkap
-          if (response.profileStatus.nextStep.isEmpty) {
-            print("DEBUG - Profile incomplete, navigating to insight intro");
+          String nextStep = response.profileStatus.nextStep;
+          
+          // Jika next step tidak ada, cek completion percentage
+          if (nextStep.isEmpty && response.profileStatus.completionPercentage == 0) {
+            // User baru, arahkan ke insight intro
+            if (kDebugMode) {
+              print("DEBUG - Profile incomplete, navigating to insight intro");
+            }
             Get.offAllNamed(Routes.insight, arguments: response.user.name);
           } else {
             // Arahkan ke step yang sesuai
-            switch (response.profileStatus.nextStep) {
+            switch (nextStep) {
               case 'step1':
-                print("DEBUG - Navigating to profile step 1");
+                if (kDebugMode) {
+                  print("DEBUG - Navigating to profile step 1");
+                }
                 Get.offAllNamed(Routes.profileStep1);
                 break;
               case 'step2':
-                print("DEBUG - Navigating to profile step 2");
+                if (kDebugMode) {
+                  print("DEBUG - Navigating to profile step 2");
+                }
                 Get.offAllNamed(Routes.profileStep2);
                 break;
               case 'step3':
-                print("DEBUG - Navigating to profile step 3");
+                if (kDebugMode) {
+                  print("DEBUG - Navigating to profile step 3");
+                }
                 Get.offAllNamed(Routes.profileStep3);
                 break;
               default:
-                print("DEBUG - Unknown profile step, navigating to insight intro");
+                if (kDebugMode) {
+                  print("DEBUG - Unknown profile step, navigating to insight intro");
+                }
                 Get.offAllNamed(Routes.insight, arguments: response.user.name);
             }
           }
@@ -206,18 +241,28 @@ class LoginConfirmController extends GetxController {
         // Cek apakah controller masih aktif
         if (_isDisposed) return;
         
-        // PERBAIKAN 8: Error handling yang lebih user-friendly
-        print("DEBUG - Login error from API: $e");
-        
-        // PERBAIKAN 9: Untuk development, bypass error dan langsung navigasi
+        // Error handling yang lebih user-friendly
         if (kDebugMode) {
-          print("DEBUG - Development mode - bypassing error and navigating to home");
+          print("DEBUG - Login error from API: $e");
+        }
+        
+        // Cek jika masalah koneksi
+        if (e.toString().contains('koneksi') || 
+            e.toString().contains('network') || 
+            e.toString().contains('Failed host lookup') ||
+            e.toString().contains('Timeout') ||
+            e.toString().contains('timeout')) {
           
-          // Set login status
-          _authController.isLoggedIn.value = true;
-          
-          // Force navigasi ke home
-          Get.offAllNamed(Routes.insight, arguments: "User Test");
+          errorMessage.value = "Gagal terhubung ke server. Silahkan periksa koneksi internet Anda.";
+          Get.snackbar(
+            'Koneksi Gagal',
+            errorMessage.value,
+            backgroundColor: Colors.red[100],
+            colorText: Colors.red[900],
+            snackPosition: SnackPosition.BOTTOM,
+            margin: const EdgeInsets.all(16),
+            duration: const Duration(seconds: 5),
+          );
           return;
         }
         
@@ -252,20 +297,11 @@ class LoginConfirmController extends GetxController {
       
       // Handling error umum
       errorMessage.value = "Terjadi kesalahan: ${e.toString()}";
-      print("DEBUG - General login exception: ${errorMessage.value}");
-      
-      // PERBAIKAN 10: Untuk development, bypass error dan langsung navigasi
       if (kDebugMode) {
-        print("DEBUG - Development mode - bypassing error and navigating to home");
-        
-        // Set login status
-        _authController.isLoggedIn.value = true;
-        
-        // Force navigasi ke home
-        Get.offAllNamed(Routes.insight, arguments: "User Test");
-        return;
+        print("DEBUG - General login exception: ${errorMessage.value}");
       }
       
+      // Tampilkan error dalam snackbar
       Get.snackbar(
         'Error',
         errorMessage.value,
