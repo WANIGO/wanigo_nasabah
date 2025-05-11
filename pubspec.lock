@@ -296,6 +296,7 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+<<<<<<< HEAD
   gap:
     dependency: "direct main"
     description:
@@ -304,6 +305,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+=======
+>>>>>>> 71672f60608a6d4e32b2972b518c2f4590435ad6
   get:
     dependency: "direct main"
     description:
@@ -465,6 +468,25 @@ packages:
     source: hosted
     version: "1.16.0"
   mime:
+<<<<<<< HEAD
+=======
+    dependency: transitive
+    description:
+      name: mime
+      sha256: "41a20518f0cb1256669420fdba0cd90d21561e560ac240f26ef8322e45bb7ed6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+  octo_image:
+    dependency: transitive
+    description:
+      name: octo_image
+      sha256: "34faa6639a78c7e3cbe79be6f9f96535867e879748ade7d17c9b1ae7536293bd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
+  path:
+>>>>>>> 71672f60608a6d4e32b2972b518c2f4590435ad6
     dependency: transitive
     description:
       name: mime
@@ -680,6 +702,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.4.1"
+<<<<<<< HEAD
   simple_gesture_detector:
     dependency: transitive
     description:
@@ -688,6 +711,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.1"
+=======
+>>>>>>> 71672f60608a6d4e32b2972b518c2f4590435ad6
   sky_engine:
     dependency: transitive
     description: flutter
@@ -781,6 +806,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+<<<<<<< HEAD
   table_calendar:
     dependency: "direct main"
     description:
@@ -789,6 +815,8 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.9"
+=======
+>>>>>>> 71672f60608a6d4e32b2972b518c2f4590435ad6
   term_glyph:
     dependency: transitive
     description:
@@ -881,10 +909,17 @@ packages:
     dependency: transitive
     description:
       name: win32
+<<<<<<< HEAD
       sha256: "329edf97fdd893e0f1e3b9e88d6a0e627128cc17cc316a8d67fda8f1451178ba"
       url: "https://pub.dev"
     source: hosted
     version: "5.13.0"
+=======
+      sha256: dc6ecaa00a7c708e5b4d10ee7bec8c270e9276dfcab1783f57e9962d7884305f
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.12.0"
+>>>>>>> 71672f60608a6d4e32b2972b518c2f4590435ad6
   win32_registry:
     dependency: transitive
     description:
