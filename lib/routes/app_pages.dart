@@ -1,6 +1,9 @@
 // File: lib/routes/app_pages.dart
 
 import 'package:get/get.dart';
+import 'package:wanigo_nasabah/features/waste_reports/views/laporan_penjualan_sampah.dart';
+import 'package:wanigo_nasabah/features/waste_reports/views/laporan_sampah.dart';
+import 'package:wanigo_nasabah/features/waste_reports/views/laporan_tonase_sampah.dart';
 import 'package:wanigo_nasabah/routes/app_routes.dart';
 
 // Auth
@@ -127,6 +130,34 @@ class AppPages {
       binding: ProfileBinding(),
       middlewares: [ProfileStepGuard()], // TAMBAHAN: Middleware untuk mengecek status profil
       transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    // TF 6
+    GetPage(
+      name: Routes.laporanSampah,
+      page: () => const LaporanSampah(),
+      // binding: ProfileBinding(),
+      // middlewares: [ProfileStepGuard()], // TAMBAHAN: Middleware untuk mengecek status profil
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    GetPage(
+      name: Routes.laporanTonaseSampah,
+      page: () => const LaporanTonaseSampah(),
+      // binding: ProfileBinding(),
+      // middlewares: [ProfileStepGuard()], // TAMBAHAN: Middleware untuk mengecek status profil
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    GetPage(
+      name: Routes.laporanPenjualanSampah,
+      page: () => const LaporanPenjualanSampah(),
+      // binding: ProfileBinding(),
+      // middlewares: [ProfileStepGuard()], // TAMBAHAN: Middleware untuk mengecek status profil
+      transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 300),
     ),
   ];

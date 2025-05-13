@@ -1,0 +1,2 @@
+C:/Kerjaan/wanigo/wanigo_nasabah/android/app/.cxx/Debug/2n3i4l6n/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Kerjaan/wanigo/wanigo_nasabah/android/app/.cxx/Debug/2n3i4l6n/arm64-v8a/CMakeFiles/rebuild_cache.dir

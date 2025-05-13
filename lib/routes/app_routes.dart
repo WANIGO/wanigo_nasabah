@@ -92,4 +92,9 @@ class Routes {
   static const String subKategoriSampah = '/sub-kategori-sampah';
   static const String kategoriUtama = '/sub-kategori-sampah/kategori-utama';
   static const String subKategoriByBank = '/sub-kategori-sampah/by-bank';
+
+  // Laporan Sampah
+  static const String laporanSampah = '/laporan-sampah';
+  static const String laporanTonaseSampah = '/laporan-sampah/tonase';
+  static const String laporanPenjualanSampah = '/laporan-sampah/penjualan';
 }
