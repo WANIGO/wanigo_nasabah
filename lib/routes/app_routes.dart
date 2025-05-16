@@ -92,4 +92,12 @@ class Routes {
   static const String subKategoriSampah = '/sub-kategori-sampah';
   static const String kategoriUtama = '/sub-kategori-sampah/kategori-utama';
   static const String subKategoriByBank = '/sub-kategori-sampah/by-bank';
+
+
+  // Mitra Riwayat
+  static const String mitraPembelianSampah = '/pembelian-sampah';
+  static const String mitraSetoranSampah = '/setoran-sampah';
+  static const String mitraDetailSetoranSampah = '/setoran-sampah/detail';
+  static const String mitraDaftarItem = '/daftar-item';
+  
 }

@@ -1,6 +1,10 @@
 // File: lib/routes/app_pages.dart
 
 import 'package:get/get.dart';
+import 'package:wanigo_nasabah/features/waste_history/views/mitra_daftar_item_screen.dart';
+import 'package:wanigo_nasabah/features/waste_history/views/mitra_detail_setoran_screen.dart';
+import 'package:wanigo_nasabah/features/waste_history/views/mitra_pembelian_sampah_screen.dart';
+import 'package:wanigo_nasabah/features/waste_history/views/mitra_setoran_sampah_screen.dart';
 import 'package:wanigo_nasabah/routes/app_routes.dart';
 
 // Auth
@@ -126,6 +130,36 @@ class AppPages {
       page: () => const profile.ProfileCompletionScreen(),
       binding: ProfileBinding(),
       middlewares: [ProfileStepGuard()], // TAMBAHAN: Middleware untuk mengecek status profil
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+
+    // Mitra History
+    GetPage(
+      name: Routes.mitraDaftarItem,
+      page: () => MitraDaftarItemScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    GetPage(
+      name: Routes.mitraDetailSetoranSampah,
+      page: () => const MitraDetailSetoranScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    GetPage(
+      name: Routes.mitraPembelianSampah,
+      page: () => MitraPembelianSampahScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 300),
+    ),
+
+    GetPage(
+      name: Routes.mitraSetoranSampah,
+      page: () => MitraSetoranSampahScreen(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
     ),

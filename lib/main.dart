@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
           title: 'Wanigo Nasabah',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
-          initialRoute: Routes.splash,
+          initialRoute: Routes.mitraDetailSetoranSampah,
           getPages: AppPages.routes,
           defaultTransition: Transition.fadeIn,
           transitionDuration: const Duration(milliseconds: 300),
