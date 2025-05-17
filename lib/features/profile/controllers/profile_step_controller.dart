@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:wanigo_nasabah/data/repositories/auth_repository.dart';
+import 'package:wanigo_nasabah/features/home/views/nasabah_home_screen.dart';
 import 'package:wanigo_nasabah/routes/app_routes.dart';
 import 'package:wanigo_nasabah/features/auth/controllers/auth_controller.dart';
 import 'package:wanigo_nasabah/data/models/auth_models.dart';
@@ -602,13 +603,34 @@ class ProfileStepController extends GetxController {
     }
   }
 
-  // Navigate to home screen after profile completion
+  // PERBAIKAN: Metode untuk navigasi ke home
   void goToHomeScreen() {
     if (_isDisposed) return;
     
     if (kDebugMode) {
-      print("DEBUG - Navigating to home screen");
+      print("DEBUG - goToHomeScreen() called directly");
     }
-    Get.offAllNamed(Routes.home);
+    
+    try {
+      // Coba langsung menggunakan offAllNamed untuk membersihkan stack navigasi
+      Get.offAllNamed(Routes.home);
+    } catch (e) {
+      if (kDebugMode) {
+        print("DEBUG - Error in direct navigation to home: $e");
+      }
+      
+      // Fallback navigation method jika metode utama gagal
+      try {
+        // Coba gunakan toNamed jika offAllNamed gagal
+        Get.toNamed(Routes.home);
+      } catch (e2) {
+        if (kDebugMode) {
+          print("DEBUG - Error in fallback navigation to home: $e2");
+        }
+        
+        // Fallback terakhir: gunakan Get.to
+        Get.to(() => const NasabahHomeScreen()); // Pastikan HomePage sudah diimpor
+      }
+    }
   }
 }

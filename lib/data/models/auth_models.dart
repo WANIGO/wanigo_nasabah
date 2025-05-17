@@ -26,17 +26,32 @@ class UserModel {
 
   /// Factory constructor untuk membuat UserModel dari json
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      id: json['id'],
-      name: json['name'],
-      email: json['email'],
-      phoneNumber: json['phone_number'],
-      role: json['role'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
-      profilePhotoUrl: json['profile_photo_url'],
-      nasabah: json['nasabah'] != null ? NasabahModel.fromJson(json['nasabah']) : null,
-    );
+    try {
+      return UserModel(
+        id: json['id'],
+        name: json['name'],
+        email: json['email'],
+        phoneNumber: json['phone_number'],
+        role: json['role'],
+        createdAt: json['created_at'],
+        updatedAt: json['updated_at'],
+        profilePhotoUrl: json['profile_photo_url'],
+        nasabah: json['nasabah'] != null
+            ? NasabahModel.fromJson(json['nasabah'])
+            : null,
+      );
+    } catch (e) {
+      print("ERROR in UserModel.fromJson: $e");
+      print("JSON data: $json");
+      // Return minimal valid model dengan data yang bisa diakses
+      return UserModel(
+        id: json['id'],
+        name: json['name'] ?? 'Unknown',
+        email: json['email'] ?? 'unknown@example.com',
+        phoneNumber: json['phone_number'],
+        role: json['role'] ?? 'nasabah',
+      );
+    }
   }
 
   /// Convert UserModel ke json
@@ -96,22 +111,32 @@ class NasabahModel {
 
   /// Factory constructor untuk membuat NasabahModel dari json
   factory NasabahModel.fromJson(Map<String, dynamic> json) {
-    return NasabahModel(
-      id: json['id'],
-      userId: json['user_id'],
-      jenisKelamin: json['jenis_kelamin'],
-      usia: json['usia'],
-      profesi: json['profesi'],
-      tahuMemilahSampah: json['tahu_memilah_sampah'],
-      motivasiMemilahSampah: json['motivasi_memilah_sampah'],
-      nasabahBankSampah: json['nasabah_bank_sampah'],
-      kodeBankSampah: json['kode_bank_sampah'],
-      frekuensiMemilahSampah: json['frekuensi_memilah_sampah'],
-      jenisSampahDikelola: json['jenis_sampah_dikelola'],
-      profileCompletedAt: json['profile_completed_at'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
-    );
+    try {
+      return NasabahModel(
+        id: json['id'],
+        userId: json['user_id'],
+        jenisKelamin: json['jenis_kelamin'],
+        usia: json['usia'],
+        profesi: json['profesi'],
+        tahuMemilahSampah: json['tahu_memilah_sampah'],
+        motivasiMemilahSampah: json['motivasi_memilah_sampah'],
+        nasabahBankSampah: json['nasabah_bank_sampah'],
+        kodeBankSampah: json['kode_bank_sampah'],
+        frekuensiMemilahSampah: json['frekuensi_memilah_sampah'],
+        jenisSampahDikelola: json['jenis_sampah_dikelola'],
+        profileCompletedAt: json['profile_completed_at'],
+        createdAt: json['created_at'],
+        updatedAt: json['updated_at'],
+      );
+    } catch (e) {
+      print("ERROR in NasabahModel.fromJson: $e");
+      print("JSON data: $json");
+      // Return model minimal yang valid
+      return NasabahModel(
+        id: json['id'],
+        userId: json['user_id'],
+      );
+    }
   }
 
   /// Convert NasabahModel ke json
@@ -140,7 +165,7 @@ class NasabahModel {
   }
 }
 
-/// Model untuk status profil
+/// Model untuk status profil - DIPERBAIKI untuk menangani string status API
 class ProfileStatusModel {
   final bool isCompleted;
   final int completionPercentage;
@@ -153,22 +178,122 @@ class ProfileStatusModel {
   });
 
   /// Factory constructor untuk membuat ProfileStatusModel dari json
-  factory ProfileStatusModel.fromJson(Map<String, dynamic> json) {
-    // Handle string & object format
-    if (json is String) {
-      // Handle string format seperti "started", "completed"
+  factory ProfileStatusModel.fromJson(dynamic json) {
+    try {
+      // Handle string format dari API
+      if (json is String) {
+        final String status = json.toLowerCase();
+
+        // Status lengkap dan umum
+        if (status == "complete" || status == "completed") {
+          return ProfileStatusModel(
+            isCompleted: true,
+            completionPercentage: 100,
+            nextStep: '',
+          );
+        } 
+        // Status awal
+        else if (status == "incomplete" || status == "started") {
+          return ProfileStatusModel(
+            isCompleted: false,
+            completionPercentage: 0,
+            nextStep: 'step1',
+          );
+        } 
+        // PERBAIKAN: Status step 1 selesai
+        else if (status == "step1_complete") {
+          return ProfileStatusModel(
+            isCompleted: false,
+            completionPercentage: 33,
+            nextStep: 'step2',  // PENTING: Mengarah ke langkah berikutnya
+          );
+        } 
+        // PERBAIKAN: Status step 2 selesai
+        else if (status == "step2_complete") {
+          return ProfileStatusModel(
+            isCompleted: false,
+            completionPercentage: 66,
+            nextStep: 'step3',  // PENTING: Mengarah ke langkah berikutnya
+          );
+        } 
+        // PERBAIKAN: Status step 3 selesai
+        else if (status == "step3_complete") {
+          return ProfileStatusModel(
+            isCompleted: true,
+            completionPercentage: 100,
+            nextStep: '',
+          );
+        } 
+        // Default untuk string yang tidak dikenal
+        else {
+          print("WARNING: Unknown profile status string: $status");
+          return ProfileStatusModel(
+            isCompleted: false,
+            completionPercentage: 0,
+            nextStep: 'step1',
+          );
+        }
+      }
+
+      // Jika json bukan string, coba proses sebagai Map
+      if (json is! Map<String, dynamic>) {
+        print("WARNING: ProfileStatusModel received non-map, non-string value: $json");
+        return ProfileStatusModel(
+          isCompleted: false,
+          completionPercentage: 0,
+          nextStep: 'step1',
+        );
+      }
+
+      // Handle data yang mungkin null atau tidak sesuai
+      bool isCompleted = false;
+      int completionPercentage = 0;
+      String nextStep = '';
+
+      // Cek dan konversi ke boolean
+      if (json.containsKey('is_completed')) {
+        if (json['is_completed'] is bool) {
+          isCompleted = json['is_completed'];
+        } else if (json['is_completed'] is String) {
+          isCompleted = json['is_completed'].toLowerCase() == 'true';
+        } else if (json['is_completed'] is num) {
+          isCompleted = json['is_completed'] > 0;
+        }
+      }
+
+      // Cek dan konversi ke integer
+      if (json.containsKey('completion_percentage')) {
+        if (json['completion_percentage'] is int) {
+          completionPercentage = json['completion_percentage'];
+        } else if (json['completion_percentage'] is double) {
+          completionPercentage = json['completion_percentage'].toInt();
+        } else if (json['completion_percentage'] is String) {
+          completionPercentage =
+              int.tryParse(json['completion_percentage']) ?? 0;
+        }
+      }
+
+      // Cek dan konversi ke string
+      if (json.containsKey('next_step')) {
+        nextStep = json['next_step']?.toString() ?? '';
+      }
+
       return ProfileStatusModel(
-        isCompleted: json == "completed",
-        completionPercentage: json == "completed" ? 100 : 0,
-        nextStep: json == "completed" ? '' : 'step1',
+        isCompleted: isCompleted,
+        completionPercentage: completionPercentage,
+        nextStep: nextStep,
+      );
+    } catch (e) {
+      print("ERROR in ProfileStatusModel.fromJson: $e");
+      print("JSON data: $json");
+
+      // Return default model yang valid dalam kasus error
+      return ProfileStatusModel(
+        isCompleted: false,
+        completionPercentage: 0,
+        nextStep: 'step1',
       );
     }
-    
-    return ProfileStatusModel(
-      isCompleted: json['is_completed'] ?? false,
-      completionPercentage: json['completion_percentage'] ?? 0,
-      nextStep: json['next_step'] ?? '',
-    );
   }
 
   /// Convert ProfileStatusModel ke json
@@ -196,7 +321,7 @@ class LoginResponse {
   LoginResponse({
     required this.user,
     required this.token,
-    required this.tokenType, 
+    required this.tokenType,
     required this.profileStatus,
   });
 }

@@ -20,13 +20,14 @@ dependencies:
   # Networking dan API
   dio: ^5.3.2
   http_parser: ^4.0.2
- 
+  http: ^0.13.5  # Pastikan package http terdaftar
+
   # Penyimpanan lokal
   flutter_secure_storage: ^9.2.4
   shared_preferences: ^2.2.0
  
   # Format data
-  intl: ^0.18.1  # Menurunkan ke versi yang lebih stabil (0.20.2 mungkin terlalu baru)
+  intl: ^0.18.1  # Menurunkan ke versi yang lebih stabil
  
   # Media
   cached_network_image: ^3.2.3
@@ -40,14 +41,21 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.2  # Menurunkan ke versi yang lebih stabil
+  flutter_lints: ^2.0.2
 
 flutter:
   uses-material-design: true
  
-  # Assets - Termasuk file SVG yang Anda butuhkan
+  # Assets - Perbaikan Path Asset
   assets:
-    - assets/images/
+    - assets/images/  # Path ini benar, jangan tambahkan "assets/" lagi ketika menggunakan Image.asset
     - assets/icons/
     - assets/lottie/
-    - assets/images/appbar-logo.svg  # File SVG spesifik
+    
+  # Contoh penggunaan asset dalam kode:
+  # Benar: Image.asset('images/lonceng.png')
+  # Salah: Image.asset('assets/images/lonceng.png')
+  
+  # Atau jika ingin menggunakan 'assets/images/lonceng.png', maka di pubspec.yaml gunakan:
+  # assets:
+  #   - assets/

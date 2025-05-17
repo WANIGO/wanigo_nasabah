@@ -142,7 +142,7 @@ class ProfileStep1Screen extends GetView<ProfileStepController> {
         
         const SizedBox(height: 24),
         
-        // Next Button - PERBAIKAN: Simpan isStep1Valid() untuk debugging
+        // Next Button
         Obx(() {
           final isValid = controller.isStep1Valid();
           if (kDebugMode) {
@@ -151,7 +151,6 @@ class ProfileStep1Screen extends GetView<ProfileStepController> {
           return GlobalButton(
             text: "Lanjutkan",
             variant: ButtonVariant.large,
-            // PERBAIKAN: Tombol selalu aktif untuk development
             onPressed: () => controller.saveStep1AndNext(),
           );
         }),
@@ -318,7 +317,7 @@ class ProfileStep2Screen extends GetView<ProfileStepController> {
         
         const SizedBox(height: 24),
         
-        // Next Button - PERBAIKAN: Tombol selalu aktif
+        // Next Button
         GlobalButton(
           text: "Lanjutkan",
           variant: ButtonVariant.large,
@@ -505,12 +504,15 @@ class ProfileStep3Screen extends GetView<ProfileStepController> {
         
         const SizedBox(height: 24),
         
-        // Submit Button - PERBAIKAN: Tombol selalu aktif
+        // Submit Button
         GlobalButton(
           text: "Lanjutkan",
           variant: ButtonVariant.large,
           onPressed: () => controller.saveStep3AndFinish(),
         ),
+        
+        // Padding bawah untuk memberikan ruang
+        const SizedBox(height: 30),
       ],
     );
   }
@@ -524,7 +526,7 @@ class ProfileStep3Screen extends GetView<ProfileStepController> {
   }
 }
 
-// Completion Screen - Tidak perlu perubahan
+// Completion Screen - PERBAIKAN UTAMA
 class ProfileCompletionScreen extends GetView<ProfileStepController> {
   const ProfileCompletionScreen({Key? key}) : super(key: key);
 
@@ -540,19 +542,19 @@ class ProfileCompletionScreen extends GetView<ProfileStepController> {
     return BaseWidgetContainer(
       backgroundColor: Colors.white,
       appBar: GlobalAppBar(
-        showBackButton: true,
-        onBackPressed: () => Get.back(),
+        showBackButton: false, // PERUBAHAN: Hilangkan tombol back
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Main content
-            Padding(
+      // PERUBAHAN UTAMA: Gunakan Column bukan Stack untuk mencegah scroll di halaman completion
+      body: Column(
+        children: [
+          // Main content
+          Expanded(
+            child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center, // PENTING: Tengahkan konten
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Party icon
@@ -562,6 +564,9 @@ class ProfileCompletionScreen extends GetView<ProfileStepController> {
                     height: 80,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
+                      if (kDebugMode) {
+                        print("DEBUG - Error loading party icon: $error");
+                      }
                       return Icon(
                         Icons.celebration,
                         size: 80,
@@ -605,47 +610,53 @@ class ProfileCompletionScreen extends GetView<ProfileStepController> {
                     ),
                   ),
                   
-                  const Spacer(),
+                  const Spacer(), // PENTING: Menggunakan spacer untuk mendorong button ke bawah
                   
-                  // Start button
+                  // Start button - PERBAIKAN UTAMA di sini untuk mengatasi masalah navigasi
                   GlobalButton(
                     text: 'Mulai Jelajahi Fitur WANIGO!',
                     variant: ButtonVariant.large,
-                    onPressed: () => controller.goToHomeScreen(),
+                    onPressed: () {
+                      if (kDebugMode) {
+                        print("DEBUG - Home button clicked directly");
+                      }
+                      // PERUBAHAN: Gunakan direct navigation untuk menghindari masalah controller
+                      Get.offAllNamed(Routes.home);
+                    },
                   ),
+                  
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
-            
-            // Bottom decoration
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Image.asset(
-                'assets/images/bg_main_bottom.png', // Perbaikan: menggunakan file yang ada
-                fit: BoxFit.fitWidth,
-                errorBuilder: (context, error, stackTrace) {
-                  if (kDebugMode) {
-                    print("DEBUG - Error loading bottom image: $error");
-                  }
-                  return Container(
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: AppColors.blue100.withOpacity(0.3),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+          
+          // Bottom decoration - DI LUAR Expanded untuk memastikan selalu di bawah
+          // dengan ukuran yang konsisten (tidak dipaksa meregang untuk mengisi ruang kosong)
+          Image.asset(
+            'assets/images/bg_main_bottom.png',
+            width: double.infinity,
+            height: 100, // PERUBAHAN: Tetapkan tinggi yang konsisten
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              if (kDebugMode) {
+                print("DEBUG - Error loading bottom image: $error");
+              }
+              return Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.blue100.withOpacity(0.3),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 }
 
-// Base widget for all profile step screens
+// Base widget for all profile step screens - PERUBAHAN UTAMA pada struktur layout
 class ProfileStepBase extends StatelessWidget {
   final int currentStep;
   final int totalSteps;
@@ -670,11 +681,13 @@ class ProfileStepBase extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Main content with scroll
-            SingleChildScrollView(
+      // PERUBAHAN UTAMA: Menggunakan Column dengan Expanded untuk
+      // memastikan gambar background selalu di bagian bawah
+      body: Column(
+        children: [
+          // Content utama dengan scroll
+          Expanded(
+            child: SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
@@ -784,37 +797,32 @@ class ProfileStepBase extends StatelessWidget {
                     
                     // Form content
                     ...children,
-                    
-                    // Space at bottom to account for the plants decoration
-                    const SizedBox(height: 120),
                   ],
                 ),
               ),
             ),
-            
-            // Bottom decoration
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Image.asset(
-                'assets/images/bg_main_bottom.png', // Perbaikan: menggunakan file yang ada
-                fit: BoxFit.fitWidth,
-                errorBuilder: (context, error, stackTrace) {
-                  if (kDebugMode) {
-                    print("DEBUG - Error loading bottom image: $error");
-                  }
-                  return Container(
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: AppColors.blue100.withOpacity(0.3),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+          
+          // PERUBAHAN UTAMA: Bottom decoration di luar area scroll
+          // DENGAN TINGGI TETAP untuk memastikan konsistensi tampilan
+          Image.asset(
+            'assets/images/bg_main_bottom.png',
+            width: double.infinity,
+            height: 100, // Tetapkan tinggi yang konsisten
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              if (kDebugMode) {
+                print("DEBUG - Error loading bottom image: $error");
+              }
+              return Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.blue100.withOpacity(0.3),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

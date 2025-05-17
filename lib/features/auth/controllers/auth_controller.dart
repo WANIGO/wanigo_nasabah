@@ -98,17 +98,6 @@ class AuthController extends GetxController {
             // Jika API gagal, reset login state
             if (kDebugMode) {
               print("DEBUG - Failed to refresh user data: $e");
-              
-              // PERBAIKAN 1: Development bypass untuk error koneksi
-              print("DEBUG - Development mode - bypassing error connection");
-              
-              // Set nilai default untuk development
-              _setDefaultDevelopmentUser();
-              isLoggedIn.value = true;
-              
-              // Navigate berdasarkan nilai default
-              await navigateBasedOnProfileStatus();
-              return;
             }
             await logout(redirect: true);
           }
@@ -125,14 +114,6 @@ class AuthController extends GetxController {
       // Error handling
       if (kDebugMode) {
         print("DEBUG - Error checking login status: $e");
-        
-        // PERBAIKAN 2: Development bypass untuk error
-        if (kDebugMode) {
-          print("DEBUG - Development mode - bypassing error");
-          isLoggedIn.value = false;
-          Get.offAllNamed(Routes.login);
-          return;
-        }
       }
       isLoggedIn.value = false;
       Get.offAllNamed(Routes.login);
@@ -159,21 +140,6 @@ class AuthController extends GetxController {
     } catch (e) {
       if (kDebugMode) {
         print("DEBUG - Error checking profile status: $e");
-        
-        // PERBAIKAN 3: Development bypass untuk error
-        if (kDebugMode) {
-          print("DEBUG - Development mode - using default profile status");
-          
-          // Gunakan default profile status untuk development
-          final defaultStatus = ProfileStatusModel(
-            isCompleted: false,
-            completionPercentage: 0,
-            nextStep: 'step1',
-          );
-          
-          profileStatus.value = defaultStatus;
-          return defaultStatus;
-        }
       }
       
       // Return saved profile status or default
@@ -259,29 +225,14 @@ class AuthController extends GetxController {
       } catch (e) {
         if (kDebugMode) {
           print("DEBUG - Failed to get profile status: $e");
-          
-          // PERBAIKAN 4: Development bypass untuk error
-          if (kDebugMode) {
-            print("DEBUG - Development mode - using default profile status");
-            profileStatus.value = ProfileStatusModel(
-              isCompleted: false,
-              completionPercentage: 0,
-              nextStep: 'step1',
-            );
-          } else {
-            // Jika gagal, arahkan ke login
-            Get.offAllNamed(Routes.login);
-            return;
-          }
-        } else {
-          // Jika gagal, arahkan ke login
-          Get.offAllNamed(Routes.login);
-          return;
         }
+        // Jika gagal, arahkan ke login
+        Get.offAllNamed(Routes.login);
+        return;
       }
     }
     
-    // PERBAIKAN 5: Cek field jenis_sampah_dikelola terlebih dahulu sebagai indikator profil lengkap
+    // Cek field jenis_sampah_dikelola terlebih dahulu sebagai indikator profil lengkap
     if (user.value?.nasabah != null && 
         user.value!.nasabah!.jenisSampahDikelola != null && 
         user.value!.nasabah!.jenisSampahDikelola!.isNotEmpty) {
@@ -369,62 +320,7 @@ class AuthController extends GetxController {
     } catch (e) {
       if (kDebugMode) {
         print("DEBUG - Error refreshing user profile: $e");
-        
-        // PERBAIKAN 6: Development bypass untuk error
-        if (kDebugMode) {
-          print("DEBUG - Development mode - setting default user for refresh");
-          _setDefaultDevelopmentUser();
-        }
       }
-    }
-  }
-  
-  // PERBAIKAN 7: Method untuk mengatur nilai default untuk mode development
-  void _setDefaultDevelopmentUser() {
-    if (!kDebugMode) return;
-    
-    // Buat model nasabah default
-    final defaultNasabah = NasabahModel(
-      id: 1,
-      userId: 1,
-      jenisKelamin: 'Laki-laki',
-      usia: '18 hingga 34 tahun',
-      profesi: 'Developer',
-      tahuMemilahSampah: 'Sudah tahu',
-      motivasiMemilahSampah: 'Menjaga lingkungan',
-      nasabahBankSampah: 'Tidak, belum',
-      kodeBankSampah: null,
-      frekuensiMemilahSampah: 'Setiap minggu',
-      jenisSampahDikelola: 'Plastik',
-      profileCompletedAt: '2025-04-25T10:30:00.000000Z',
-      createdAt: '2025-04-25T10:15:00.000000Z',
-      updatedAt: '2025-04-25T10:30:00.000000Z',
-    );
-    
-    // Buat user model default
-    user.value = UserModel(
-      id: 1,
-      name: 'User Test',
-      email: 'test@example.com',
-      phoneNumber: '08123456789',
-      role: 'nasabah',
-      createdAt: '2025-04-25T10:00:00.000000Z',
-      updatedAt: '2025-04-25T10:00:00.000000Z',
-      nasabah: defaultNasabah,
-    );
-    
-    // Buat profile status default
-    profileStatus.value = ProfileStatusModel(
-      isCompleted: true,
-      completionPercentage: 100,
-      nextStep: '',
-    );
-    
-    if (kDebugMode) {
-      print("DEBUG - Default development user has been set");
-      print("DEBUG - User: ${user.value?.name}");
-      print("DEBUG - jenis_sampah_dikelola: ${user.value?.nasabah?.jenisSampahDikelola}");
-      print("DEBUG - Profile status: isCompleted=${profileStatus.value?.isCompleted}, nextStep=${profileStatus.value?.nextStep}");
     }
   }
 }

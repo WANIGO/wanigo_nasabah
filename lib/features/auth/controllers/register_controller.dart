@@ -206,26 +206,24 @@ class RegisterController extends GetxController {
         // Cek apakah controller masih aktif
         if (_isDisposed) return;
         
-        // LANGKAH PERBAIKAN 1: Update login status pada AuthController
+        // PERBAIKAN: Update login status pada AuthController
         _authController.isLoggedIn.value = true;
         
-        // LANGKAH PERBAIKAN 2: Set user dan profileStatus
-        if (response.user != null) {
-          _authController.user.value = response.user;
-        }
+        // PERBAIKAN: Set user
+        _authController.user.value = response.user;
         
-        if (response.profileStatus != null) {
-          _authController.profileStatus.value = response.profileStatus;
-        }
+        // PERBAIKAN: Set profileStatus dengan null check yang tepat
+        _authController.profileStatus.value = response.profileStatus;
         
         // Logging untuk memastikan status sudah diperbarui
         if (kDebugMode) {
           print("DEBUG - After registration, isLoggedIn: ${_authController.isLoggedIn.value}");
           print("DEBUG - After registration, user: ${_authController.user.value?.name}");
-          print("DEBUG - After registration, profileStatus: ${_authController.profileStatus.value?.nextStep}");
+          // PERBAIKAN: Tambahkan null check yang benar
+          print("DEBUG - After registration, profileStatus: ${_authController.profileStatus.value?.nextStep ?? 'null'}");
         }
         
-        // LANGKAH PERBAIKAN 3: Tunggu sedikit waktu agar status login disimpan
+        // PERBAIKAN: Tunggu sedikit waktu agar status login disimpan
         await Future.delayed(const Duration(milliseconds: 300));
         
         // Navigasi ke insight intro dengan nama user
